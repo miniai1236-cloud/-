@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON TRAVELER | 스마트 여행 플래너</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="dark-theme">
+    <div class="background-animation"></div>
+    
+    <header>
+        <div class="logo">
+            <i class="fas fa-shuttle-space"></i>
+            <span>NEON TRAVELER</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#home">HOME</a></li>
+                <li><a href="#trips">MY TRIPS</a></li>
+                <li><a href="#planner" class="active">PLANNER</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="fade-in">
+            <div class="hero-content">
+                <h1 class="neon-text-cyan">미래의 여행을 설계하세요</h1>
+                <p>스마트한 일정 관리와 정교한 경비 계산, 지금 시작하세요.</p>
+                <button id="start-btn" class="neon-btn-magenta">새 여행 시작하기</button>
+            </div>
+        </section>
+
+        <section id="planner-section" class="hidden fade-in">
+            <div class="glass-card main-planner">
+                <div class="planner-header">
+                    <h2 id="current-trip-title" class="neon-text-magenta">여행 계획 정보</h2>
+                    <button id="export-btn" class="icon-btn" title="데이터 내보내기"><i class="fas fa-file-export"></i></button>
+                </div>
+
+                <div class="grid-container">
+                    <!-- 일정 및 장소 -->
+                    <div class="card-section">
+                        <h3><i class="fas fa-map-location-dot"></i> 일정 및 장소</h3>
+                        <div id="itinerary-list" class="item-list">
+                            <!-- 일정 아이템이 여기에 추가됨 -->
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="place-input" placeholder="장소 또는 일정 입력">
+                            <input type="time" id="time-input">
+                            <button id="add-place-btn" class="plus-btn"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- 가계부 및 정산 -->
+                    <div class="card-section">
+                        <h3><i class="fas fa-wallet"></i> 가계부 및 정산</h3>
+                        <div class="budget-info">
+                            <span>총 예산: </span>
+                            <input type="number" id="total-budget" placeholder="0" class="neon-input">
+                            <span>원</span>
+                        </div>
+                        <div id="expense-list" class="item-list">
+                            <!-- 지출 내역이 여기에 추가됨 -->
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="expense-name" placeholder="항목">
+                            <input type="number" id="expense-amount" placeholder="금액">
+                            <button id="add-expense-btn" class="plus-btn"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div class="settlement-info">
+                            <div class="balance-status">
+                                <span>남은 잔액: </span>
+                                <span id="remaining-balance" class="neon-text-cyan">0</span><span>원</span>
+                            </div>
+                            <div class="split-info">
+                                <span>인원수: </span>
+                                <input type="number" id="people-count" value="1" min="1" class="neon-input-small">
+                                <span class="neon-text-magenta">| 인당: </span>
+                                <span id="per-person-amount" class="neon-text-magenta">0</span><span>원</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="my-trips" class="fade-in">
+            <h2 class="section-title">최근 여행 목록</h2>
+            <div id="trips-grid" class="trips-grid">
+                <!-- 저장된 여행 카드들이 여기에 추가됨 -->
+            </div>
+        </section>
+    </main>
+
+    <!-- 여행 생성 모달 -->
+    <div id="create-modal" class="modal hidden">
+        <div class="modal-content glass-card">
+            <h2>새로운 여정 시작</h2>
+            <input type="text" id="trip-name-input" placeholder="여행 제목 (예: 도쿄 감성 여행)">
+            <div class="modal-btns">
+                <button id="cancel-modal" class="btn-secondary">취소</button>
+                <button id="confirm-trip" class="neon-btn-cyan">생성</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 NEON TRAVELER. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
