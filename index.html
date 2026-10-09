@@ -3,114 +3,828 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEON TRAVELER | 스마트 여행 플래너</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>우리가족 맞춤형 스마트 여행 플래너</title>
+    <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-jua.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Nanum Jua', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+            max-height: 900px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        header {
+            background-color: #03c75a;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 21px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f4f6f9;
+        }
+
+        /* 여행 목록 화면 스타일 */
+        .trip-select-container {
+            display: block;
+        }
+        .trip-select-container.hidden {
+            display: none;
+        }
+        .trip-main-title {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .trip-add-box {
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 6px;
+        }
+        .trip-list {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        .trip-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .trip-card:hover {
+            border-color: #03c75a;
+            background-color: #f8fafc;
+        }
+        .trip-card-info h3 {
+            margin: 0 0 4px 0;
+            color: #03c75a;
+            font-size: 17px;
+        }
+        .trip-card-info p {
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* 상세 플래너 화면 스타일 */
+        .planner-container {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+        .planner-container.active {
+            display: flex;
+        }
+
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        #map {
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 2px solid #cbd5e1;
+            z-index: 1;
+        }
+
+        .section-title {
+            font-size: 16px;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .schedule-input-box {
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 6px;
+        }
+        .time-input {
+            width: 70px;
+            padding: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 13px;
+            text-align: center;
+        }
+        .schedule-list {
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            max-height: 140px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+        .schedule-item {
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-box {
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 6px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 14px;
+            outline: none;
+        }
+        .add-btn {
+            background-color: #03c75a;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .card-list {
+            max-height: 240px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+        .card {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            margin-bottom: 8px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .card:hover {
+            border-color: #03c75a;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .card-header h3 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 15px;
+        }
+        .delete-btn {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 3px 6px;
+            border-radius: 5px;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+        }
+        .route-btn {
+            flex: 1;
+            text-align: center;
+            padding: 5px 0;
+            border-radius: 6px;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        .naver-link { background-color: #e8f8ed; color: #03c75a; border: 1px solid #c6f0d4; }
+        .kakao-link { background-color: #fffde6; color: #b39b00; border: 1px solid #fae100; }
+
+        .budget-config {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .budget-summary {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+        }
+        .budget-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .budget-input-box {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 6px;
+        }
+        .money-input {
+            width: 85px;
+            padding: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 13px;
+        }
+        .expense-list {
+            max-height: 110px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .calc-box {
+            background: #e8f8ed;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #c6f0d4;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .calendar-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        nav {
+            display: flex;
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            height: 60px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            font-family: 'Nanum Jua', sans-serif;
+            font-size: 15px;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            color: #03c75a;
+            background-color: #f8fafc;
+            border-top: 3px solid #03c75a;
+        }
+    </style>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
-<body class="dark-theme">
-    <div class="background-animation"></div>
-    
-    <header>
-        <div class="logo">
-            <i class="fas fa-shuttle-space"></i>
-            <span>NEON TRAVELER</span>
+<body>
+
+    <div class="app-container">
+        <header>
+            <button id="backBtn" class="back-btn" style="display:none;" onclick="goHome()">⬅️ 목록</button>
+            <span id="headerTitle" style="flex:1; text-align:center;">✈️ 스마트 여행 플래너</span>
+            <div style="width: 40px;"></div>
+        </header>
+
+        <div class="content-area">
+            <!-- 📁 1. 여행 선택 및 추가 메인 화면 -->
+            <div id="tripSelectView" class="trip-select-container">
+                <div class="trip-main-title">➕ 새로운 여행 만들기</div>
+                <div class="trip-add-box">
+                    <input type="text" id="newTripNameInput" class="search-input" placeholder="여행 이름 (예: 26년 7월 1~4일 부산 여행)">
+                    <button class="add-btn" onclick="addNewTrip()">생성</button>
+                </div>
+
+                <div class="trip-main-title">🗺️ 나의 여행 목록</div>
+                <div class="trip-list" id="tripListContainer"></div>
+            </div>
+
+            <!-- 📱 2. 개별 여행 상세 플래너 화면 -->
+            <div id="plannerView" class="planner-container">
+                <!-- 일정/동선 탭 -->
+                <div id="schedule" class="tab-content active">
+                    <div id="map"></div>
+                    
+                    <h3 class="section-title">⏱️ 타임라인 추가</h3>
+                    <div class="schedule-input-box">
+                        <input type="text" id="schTime" class="time-input" placeholder="시간 (10:00)">
+                        <input type="text" id="schDesc" class="search-input" placeholder="일정 내용 입력">
+                        <button class="add-btn" onclick="addSchedule()">추가</button>
+                    </div>
+
+                    <h3 class="section-title">📋 타임라인 일정표</h3>
+                    <div class="schedule-list" id="scheduleList">
+                        <div style="text-align:center; color:#94a3b8; font-size:13px; margin:10px 0;">등록된 일정이 없습니다.</div>
+                    </div>
+                </div>
+
+                <!-- 장소/링크 탭 -->
+                <div id="links" class="tab-content">
+                    <h3 class="section-title">➕ 장소 추가 (지도 연동)</h3>
+                    <div class="search-box">
+                        <input type="text" id="placeInput" class="search-input" placeholder="장소 입력 (예: 해운대 해수욕장)">
+                        <button class="add-btn" onclick="addLocation()">추가</button>
+                    </div>
+
+                    <h3 class="section-title">📍 등록된 장소 (클릭시 지도 확대)</h3>
+                    <div class="card-list" id="cardList"></div>
+                </div>
+
+                <!-- 가계부 탭 -->
+                <div id="accounting" class="tab-content">
+                    <div class="budget-config">
+                        <span style="font-size:14px; font-weight:bold; color:#1e293b;">총 예산 설정:</span>
+                        <div style="display:flex; gap:4px;">
+                            <input type="number" id="budgetInput" class="money-input" placeholder="금액 입력">
+                            <button class="add-btn" onclick="setBudget()" style="padding:4px 8px; font-size:12px;">적용</button>
+                        </div>
+                    </div>
+
+                    <div class="budget-summary">
+                        <div class="budget-row"><span>총 예산:</span> <strong id="totalBudgetTxt">0원</strong></div>
+                        <div class="budget-row"><span>총 지출:</span> <strong id="totalExpenseTxt" style="color: #dc2626;">0원</strong></div>
+                        <hr style="border:0; border-top:1px solid #e2e8f0; margin:5px 0;">
+                        <div class="budget-row" style="font-size: 16px;"><span>남은 잔액:</span> <strong id="remainBudgetTxt" style="color: #03c75a;">0원</strong></div>
+                    </div>
+
+                    <h3 class="section-title">💳 지출 입력</h3>
+                    <div class="budget-input-box">
+                        <input type="text" id="expName" class="search-input" placeholder="항목 (예: 저녁 식사)" style="flex: 1.2;">
+                        <input type="number" id="expPrice" class="money-input" placeholder="금액(원)">
+                        <button class="add-btn" onclick="addExpense()">등록</button>
+                    </div>
+
+                    <div class="expense-list" id="expenseList" style="background:white; padding:8px; border-radius:10px; border:1px solid #e2e8f0;">
+                        <div style="text-align:center; color:#94a3b8; font-size:13px; margin:10px 0;">등록된 지출이 없습니다.</div>
+                    </div>
+
+                    <div class="calc-box">
+                        <div style="font-size: 13px; color: #1e293b; margin-bottom: 3px;">👥 N분의 1 정산 (인원 수)</div>
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 6px;">
+                            <input type="number" id="peopleCount" value="2" min="1" oninput="calculateSplit()" style="width: 45px; text-align: center; padding: 3px; font-family:'Nanum Jua'; font-size:13px; border:1px solid #cbd5e1; border-radius:6px;">명 기준
+                        </div>
+                        <div id="splitResultTxt" style="font-size: 15px; font-weight: bold; color: #03c75a; margin-top: 4px;">1인당: 0원</div>
+                    </div>
+
+                    <button class="calendar-btn" onclick="saveToText()">📥 여행 요약 텍스트 다운로드</button>
+                </div>
+            </div>
         </div>
-        <nav>
-            <ul>
-                <li><a href="#home">HOME</a></li>
-                <li><a href="#trips">MY TRIPS</a></li>
-                <li><a href="#planner" class="active">PLANNER</a></li>
-            </ul>
+
+        <nav id="bottomNav" style="display:none;">
+            <button class="tab-btn active" onclick="switchTab(event, 'schedule')">📅 일정/동선</button>
+            <button class="tab-btn" onclick="switchTab(event, 'links')">📍 장소/링크</button>
+            <button class="tab-btn" onclick="switchTab(event, 'accounting')">💰 가계부</button>
         </nav>
-    </header>
-
-    <main>
-        <section id="hero" class="fade-in">
-            <div class="hero-content">
-                <h1 class="neon-text-cyan">미래의 여행을 설계하세요</h1>
-                <p>스마트한 일정 관리와 정교한 경비 계산, 지금 시작하세요.</p>
-                <button id="start-btn" class="neon-btn-magenta">새 여행 시작하기</button>
-            </div>
-        </section>
-
-        <section id="planner-section" class="hidden fade-in">
-            <div class="glass-card main-planner">
-                <div class="planner-header">
-                    <h2 id="current-trip-title" class="neon-text-magenta">여행 계획 정보</h2>
-                    <button id="export-btn" class="icon-btn" title="데이터 내보내기"><i class="fas fa-file-export"></i></button>
-                </div>
-
-                <div class="grid-container">
-                    <!-- 일정 및 장소 -->
-                    <div class="card-section">
-                        <h3><i class="fas fa-map-location-dot"></i> 일정 및 장소</h3>
-                        <div id="itinerary-list" class="item-list">
-                            <!-- 일정 아이템이 여기에 추가됨 -->
-                        </div>
-                        <div class="input-group">
-                            <input type="text" id="place-input" placeholder="장소 또는 일정 입력">
-                            <input type="time" id="time-input">
-                            <button id="add-place-btn" class="plus-btn"><i class="fas fa-plus"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- 가계부 및 정산 -->
-                    <div class="card-section">
-                        <h3><i class="fas fa-wallet"></i> 가계부 및 정산</h3>
-                        <div class="budget-info">
-                            <span>총 예산: </span>
-                            <input type="number" id="total-budget" placeholder="0" class="neon-input">
-                            <span>원</span>
-                        </div>
-                        <div id="expense-list" class="item-list">
-                            <!-- 지출 내역이 여기에 추가됨 -->
-                        </div>
-                        <div class="input-group">
-                            <input type="text" id="expense-name" placeholder="항목">
-                            <input type="number" id="expense-amount" placeholder="금액">
-                            <button id="add-expense-btn" class="plus-btn"><i class="fas fa-plus"></i></button>
-                        </div>
-                        <div class="settlement-info">
-                            <div class="balance-status">
-                                <span>남은 잔액: </span>
-                                <span id="remaining-balance" class="neon-text-cyan">0</span><span>원</span>
-                            </div>
-                            <div class="split-info">
-                                <span>인원수: </span>
-                                <input type="number" id="people-count" value="1" min="1" class="neon-input-small">
-                                <span class="neon-text-magenta">| 인당: </span>
-                                <span id="per-person-amount" class="neon-text-magenta">0</span><span>원</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="my-trips" class="fade-in">
-            <h2 class="section-title">최근 여행 목록</h2>
-            <div id="trips-grid" class="trips-grid">
-                <!-- 저장된 여행 카드들이 여기에 추가됨 -->
-            </div>
-        </section>
-    </main>
-
-    <!-- 여행 생성 모달 -->
-    <div id="create-modal" class="modal hidden">
-        <div class="modal-content glass-card">
-            <h2>새로운 여정 시작</h2>
-            <input type="text" id="trip-name-input" placeholder="여행 제목 (예: 도쿄 감성 여행)">
-            <div class="modal-btns">
-                <button id="cancel-modal" class="btn-secondary">취소</button>
-                <button id="confirm-trip" class="neon-btn-cyan">생성</button>
-            </div>
-        </div>
     </div>
 
-    <footer>
-        <p>&copy; 2026 NEON TRAVELER. All rights reserved.</p>
-    </footer>
+    <script>
+        // 여행별 데이터 저장소 (기본 예시 포함)
+        let tripsData = {
+            "trip_1": {
+                title: "26년 7월 1~4일 부산 여행",
+                locations: [
+                    { lat: 35.179554, lng: 129.075642, title: "부산역" },
+                    { lat: 35.158698, lng: 129.160384, title: "해운대 해수욕장" }
+                ],
+                schedules: [
+                    { time: "10:00", desc: "부산역 도착" }
+                ],
+                budget: 400000,
+                expenses: []
+            }
+        };
 
-    <script src="script.js"></script>
+        let currentTripKey = null;
+        var map = null;
+        let markers = [];
+        let polyline = null;
+
+        function renderTripList() {
+            const container = document.getElementById('tripListContainer');
+            container.innerHTML = '';
+
+            const keys = Object.keys(tripsData);
+            if (keys.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:13px; margin:15px 0;">등록된 여행이 없습니다.</div>`;
+                return;
+            }
+
+            keys.forEach(key => {
+                let trip = tripsData[key];
+                let card = document.createElement('div');
+                card.className = 'trip-card';
+                card.onclick = () => openTrip(key);
+                card.innerHTML = `
+                    <div class="trip-card-info">
+                        <h3>🌊 ${trip.title}</h3>
+                        <p>장소 ${trip.locations.length}개 등록됨</p>
+                    </div>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteTrip('${key}')">삭제</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function addNewTrip() {
+            const input = document.getElementById('newTripNameInput');
+            const title = input.value.trim();
+            if (!title) {
+                alert('여행 이름을 입력해주세요!');
+                return;
+            }
+
+            let newKey = 'trip_' + Date.now();
+            tripsData[newKey] = {
+                title: title,
+                locations: [{ lat: 37.566535, lng: 126.977969, title: "서울시청 (기준점)" }],
+                schedules: [],
+                budget: 300000,
+                expenses: []
+            };
+
+            input.value = '';
+            renderTripList();
+        }
+
+        function deleteTrip(key) {
+            if (confirm('정말 이 여행을 삭제하시겠습니까?')) {
+                delete tripsData[key];
+                renderTripList();
+            }
+        }
+
+        function openTrip(key) {
+            currentTripKey = key;
+            let trip = tripsData[key];
+
+            document.getElementById('tripSelectView').classList.add('hidden');
+            document.getElementById('plannerView').classList.add('active');
+            document.getElementById('bottomNav').style.display = 'flex';
+            document.getElementById('backBtn').style.display = 'block';
+            document.getElementById('headerTitle').innerText = trip.title;
+
+            if (!map) {
+                map = L.map('map').setView([35.179554, 129.075642], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+            }
+
+            updateMap();
+            updateScheduleUI();
+            updateBudgetUI();
+
+            setTimeout(() => { map.invalidateSize(); }, 200);
+        }
+
+        function goHome() {
+            document.getElementById('tripSelectView').classList.remove('hidden');
+            document.getElementById('plannerView').classList.remove('active');
+            document.getElementById('bottomNav').style.display = 'none';
+            document.getElementById('backBtn').style.display = 'none';
+            document.getElementById('headerTitle').innerText = "✈️ 스마트 여행 플래너";
+            currentTripKey = null;
+            renderTripList();
+        }
+
+        function updateMap() {
+            if (!currentTripKey) return;
+            let locations = tripsData[currentTripKey].locations;
+
+            markers.forEach(m => map.removeLayer(m));
+            if (polyline) map.removeLayer(polyline);
+
+            markers = [];
+            let latLngs = [];
+
+            locations.forEach((loc) => {
+                let marker = L.marker([loc.lat, loc.lng]).addTo(map).bindPopup(loc.title);
+                markers.push(marker);
+                latLngs.push([loc.lat, loc.lng]);
+            });
+
+            if (latLngs.length > 1) {
+                polyline = L.polyline(latLngs, { color: '#2563eb', weight: 4, opacity: 0.7, dashArray: '6, 6' }).addTo(map);
+            }
+
+            const cardList = document.getElementById('cardList');
+            cardList.innerHTML = '';
+
+            if (locations.length === 0) {
+                cardList.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:13px; margin:15px 0;">등록된 장소가 없습니다.</div>`;
+                return;
+            }
+
+            locations.forEach((loc, idx) => {
+                let card = document.createElement('div');
+                card.className = `card`;
+                card.onclick = () => {
+                    map.setView([loc.lat, loc.lng], 15);
+                    markers[idx].openPopup();
+                };
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${idx + 1}. ${loc.title}</h3>
+                        <button class="delete-btn" onclick="event.stopPropagation(); removeLocation(${idx})">삭제</button>
+                    </div>
+                    <div class="btn-group">
+                        <a href="https://map.naver.com/v5/search/${encodeURIComponent(loc.title)}" target="_blank" class="route-btn naver-link" onclick="event.stopPropagation()">💚 네이버 길찾기</a>
+                        <a href="https://map.kakao.com/?q=${encodeURIComponent(loc.title)}" target="_blank" class="route-btn kakao-link" onclick="event.stopPropagation()">💛 카카오 길찾기</a>
+                    </div>
+                `;
+                cardList.appendChild(card);
+            });
+        }
+
+        async function addLocation() {
+            const input = document.getElementById('placeInput');
+            const query = input.value.trim();
+            if (!query) {
+                alert('장소 이름을 입력해주세요!');
+                return;
+            }
+
+            input.value = '검색 중...';
+
+            try {
+                let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                let data = await response.json();
+
+                if (data && data.length > 0) {
+                    let newLat = parseFloat(data[0].lat);
+                    let newLng = parseFloat(data[0].lon);
+
+                    tripsData[currentTripKey].locations.push({
+                        lat: newLat,
+                        lng: newLng,
+                        title: query
+                    });
+
+                    input.value = '';
+                    updateMap();
+                    map.setView([newLat, newLng], 15);
+                } else {
+                    alert('장소를 찾지 못했어요. 정확한 이름으로 입력해 주세요!');
+                    input.value = '';
+                }
+            } catch (e) {
+                alert('검색 중 오류가 발생했습니다.');
+                input.value = '';
+            }
+        }
+
+        function removeLocation(idx) {
+            tripsData[currentTripKey].locations.splice(idx, 1);
+            updateMap();
+            let locs = tripsData[currentTripKey].locations;
+            if (locs.length > 0) {
+                map.setView([locs[0].lat, locs[0].lng], 12);
+            }
+        }
+
+        function addSchedule() {
+            const timeInput = document.getElementById('schTime');
+            const descInput = document.getElementById('schDesc');
+            const time = timeInput.value.trim();
+            const desc = descInput.value.trim();
+
+            if (!time || !desc) {
+                alert('시간과 내용을 모두 입력해주세요!');
+                return;
+            }
+
+            tripsData[currentTripKey].schedules.push({ time, desc });
+            timeInput.value = '';
+            descInput.value = '';
+            updateScheduleUI();
+        }
+
+        function removeSchedule(idx) {
+            tripsData[currentTripKey].schedules.splice(idx, 1);
+            updateScheduleUI();
+        }
+
+        function updateScheduleUI() {
+            const scheduleList = document.getElementById('scheduleList');
+            scheduleList.innerHTML = '';
+            let schedules = tripsData[currentTripKey].schedules;
+
+            if (schedules.length === 0) {
+                scheduleList.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:13px; margin:10px 0;">등록된 일정이 없습니다.</div>`;
+                return;
+            }
+
+            schedules.forEach((sch, idx) => {
+                let item = document.createElement('div');
+                item.className = 'schedule-item';
+                item.innerHTML = `
+                    <span style="font-weight:bold; color:#03c75a; width:50px;">${sch.time}</span>
+                    <span style="flex:1; color:#475569; margin:0 8px;">${sch.desc}</span>
+                    <button onclick="removeSchedule(${idx})" class="delete-btn">삭제</button>
+                `;
+                scheduleList.appendChild(item);
+            });
+        }
+
+        function setBudget() {
+            const budgetInput = document.getElementById('budgetInput');
+            const val = parseInt(budgetInput.value);
+            if (isNaN(val) || val < 0) {
+                alert('올바른 예산 금액을 입력해주세요!');
+                return;
+            }
+            tripsData[currentTripKey].budget = val;
+            updateBudgetUI();
+        }
+
+        function addExpense() {
+            const nameInput = document.getElementById('expName');
+            const priceInput = document.getElementById('expPrice');
+            const name = nameInput.value.trim();
+            const price = parseInt(priceInput.value);
+
+            if (!name || isNaN(price) || price <= 0) {
+                alert('올바른 지출 항목과 금액을 입력해주세요!');
+                return;
+            }
+
+            tripsData[currentTripKey].expenses.push({ name, price });
+            nameInput.value = '';
+            priceInput.value = '';
+            updateBudgetUI();
+        }
+
+        function removeExpense(idx) {
+            tripsData[currentTripKey].expenses.splice(idx, 1);
+            updateBudgetUI();
+        }
+
+        function updateBudgetUI() {
+            let trip = tripsData[currentTripKey];
+            document.getElementById('budgetInput').value = trip.budget;
+
+            const expenseList = document.getElementById('expenseList');
+            expenseList.innerHTML = '';
+
+            let totalExpense = 0;
+
+            if (trip.expenses.length === 0) {
+                expenseList.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:13px; margin:10px 0;">등록된 지출이 없습니다.</div>`;
+            } else {
+                trip.expenses.forEach((exp, idx) => {
+                    totalExpense += exp.price;
+                    let item = document.createElement('div');
+                    item.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #f1f5f9; font-size:13px;";
+                    item.innerHTML = `
+                        <span>${exp.name}</span>
+                        <div>
+                            <span style="font-weight:bold; margin-right:8px;">${exp.price.toLocaleString()}원</span>
+                            <button onclick="removeExpense(${idx})" class="delete-btn">삭제</button>
+                        </div>
+                    `;
+                    expenseList.appendChild(item);
+                });
+            }
+
+            let remain = trip.budget - totalExpense;
+
+            document.getElementById('totalBudgetTxt').innerText = trip.budget.toLocaleString() + '원';
+            document.getElementById('totalExpenseTxt').innerText = totalExpense.toLocaleString() + '원';
+            let remainTxt = document.getElementById('remainBudgetTxt');
+            remainTxt.innerText = remain.toLocaleString() + '원';
+            remainTxt.style.color = remain < 0 ? '#dc2626' : '#03c75a';
+
+            calculateSplit(totalExpense);
+        }
+
+        function calculateSplit(forcedTotal = null) {
+            let trip = tripsData[currentTripKey];
+            let totalExpense = forcedTotal !== null ? forcedTotal : trip.expenses.reduce((sum, exp) => sum + exp.price, 0);
+            let people = parseInt(document.getElementById('peopleCount').value) || 1;
+            let perPerson = Math.round(totalExpense / people);
+
+            document.getElementById('splitResultTxt').innerText = `1인당: ${perPerson.toLocaleString()}원 (${people}명 기준)`;
+        }
+
+        function saveToText() {
+            let trip = tripsData[currentTripKey];
+            let text = `🌊 [${trip.title} 요약]\n\n[타임라인 일정]\n`;
+            trip.schedules.forEach(s => { text += `- ${s.time}: ${s.desc}\n`; });
+            text += "\n[방문 장소]\n";
+            trip.locations.forEach((l, i) => { text += `${i+1}. ${l.title}\n`; });
+            
+            let totalExp = trip.expenses.reduce((sum, e) => sum + e.price, 0);
+            text += `\n[가계부 정산]\n- 총 예산: ${trip.budget.toLocaleString()}원\n- 총 지출: ${totalExp.toLocaleString()}원\n- 남은 잔액: ${(trip.budget - totalExp).toLocaleString()}원`;
+
+            let blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${trip.title}_정산요약.txt`;
+            link.click();
+        }
+
+        function switchTab(event, tabId) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(button => button.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if(tabId === 'schedule') {
+                setTimeout(() => { map.invalidateSize(); }, 100);
+            }
+        }
+
+        // 초기 실행 시 여행 목록 렌더링
+        renderTripList();
+    </script>
+
 </body>
 </html>
