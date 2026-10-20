@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#03c75a">
     <title>우리가족 맞춤형 스마트 여행 플래너</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="여행 플래너">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-jua.css" rel="stylesheet">
     <style>
         :root {
@@ -387,9 +394,10 @@
             background: none;
             border: none;
             border-top: 3px solid transparent;
-            font-size: 15px;
+            font-size: 14px;
             color: var(--muted);
             cursor: pointer;
+            padding: 0 2px;
         }
         .tab-btn.active { color: var(--green); background: #f8fafc; border-top-color: var(--green); }
 
@@ -459,6 +467,82 @@
             margin-left: 10px;
             cursor: pointer;
         }
+        /* 일차 선택 */
+        .day-filter { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 8px; padding-bottom: 2px; }
+        .day-filter button {
+            flex-shrink: 0;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 5px 12px;
+            font-size: 13px;
+            color: var(--sub);
+            cursor: pointer;
+        }
+        .day-filter button.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+        .day-dist { font-size: 12px; color: var(--sub); margin: -4px 0 8px; }
+
+        /* 장소 카드: 일차·메모 */
+        .place-tools { display: flex; gap: 6px; margin: 8px 0 0 30px; }
+        .day-sel {
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            font-size: 12px;
+            padding: 3px 4px;
+            color: var(--blue);
+            background: #fff;
+            max-width: 150px;
+        }
+        .place-memo {
+            margin: 6px 0 0 30px;
+            padding: 6px 8px;
+            background: #fffbeb;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #78350f;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        textarea.input { width: 100%; min-height: 90px; resize: vertical; line-height: 1.5; }
+
+        /* 눌러서 고치는 항목 */
+        .schedule-item, .expense-item { cursor: pointer; }
+        .schedule-item:hover, .expense-item:hover { background: #f8fafc; }
+        .payer { display: block; font-size: 11px; color: var(--muted); }
+        .edit-hint { font-size: 11px; color: var(--muted); text-align: right; margin-top: 4px; }
+
+        /* 정산 */
+        .chip.member { display: inline-flex; align-items: center; gap: 4px; background: var(--green-soft); color: var(--green); }
+        .chip.member button { background: none; border: none; color: var(--sub); font-size: 11px; padding: 0; cursor: pointer; }
+        .settle { margin-top: 10px; font-size: 13px; color: #475569; }
+        .settle-line { display: flex; justify-content: space-between; padding: 3px 0; }
+        .transfer {
+            display: flex;
+            justify-content: space-between;
+            background: var(--green-soft);
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-top: 6px;
+            font-size: 15px;
+            color: var(--ink);
+        }
+        .transfer strong { color: var(--green); font-weight: normal; }
+
+        /* 준비물 */
+        .chip.add { cursor: pointer; border: 1px dashed #cbd5e1; background: #fff; }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 15px;
+        }
+        .check-item:last-child { border-bottom: none; }
+        .check-item label { flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--ink); word-break: break-all; }
+        .check-item input { width: 20px; height: 20px; accent-color: var(--green); flex-shrink: 0; }
+        .check-item.done label { color: var(--muted); text-decoration: line-through; }
+
         .hdr-right { width: 64px; display: flex; justify-content: flex-end; gap: 2px; }
         .hdr-right .hdr-btn { width: auto; font-size: 18px; padding: 4px 3px; }
         .btn.block small { display: block; font-size: 12px; opacity: 0.85; margin-top: 2px; }
@@ -497,12 +581,23 @@
 
                 <h3 class="title">🗺️ 나의 여행 목록</h3>
                 <div id="tripList"></div>
+
+                <h3 class="title" style="margin-top:18px">💾 백업 · 복원</h3>
+                <div class="box">
+                    <div class="row">
+                        <button class="btn ghost" style="flex:1" onclick="backupTrips()">💾 백업 파일 저장</button>
+                        <button class="btn ghost" style="flex:1" onclick="$('restoreFile').click()">📂 불러오기</button>
+                    </div>
+                    <input type="file" id="restoreFile" accept=".json,application/json" class="hidden" onchange="restoreTrips(this)">
+                    <div class="label" style="margin:6px 0 0">여행은 이 기기에만 저장돼요. 휴대폰을 바꾸거나 브라우저 기록을 지우기 전에 백업해 두세요.</div>
+                </div>
             </div>
 
             <!-- 📱 2. 여행 상세 화면 -->
             <div id="plannerView" class="hidden">
                 <!-- 지도/장소 탭 -->
                 <div id="tab-places" class="tab">
+                    <div id="dayFilter" class="day-filter hidden"></div>
                     <div id="map"></div>
                     <div id="mapNote" class="map-note hidden" onclick="openSettings()"></div>
 
@@ -515,6 +610,7 @@
                     <div id="searchResults" class="results hidden"></div>
 
                     <h3 class="title">📍 방문 순서 <small id="routeSummary"></small></h3>
+                    <div id="dayDistances" class="day-dist hidden"></div>
                     <div id="placeList"></div>
                 </div>
 
@@ -544,6 +640,7 @@
 
                     <h3 class="title">📋 일정표</h3>
                     <div class="box" id="scheduleList"></div>
+                    <div class="edit-hint" id="scheduleHint">일정을 누르면 고칠 수 있어요</div>
                 </div>
 
                 <!-- 가계부 탭 -->
@@ -569,19 +666,52 @@
                             <input type="text" id="expName" class="input" placeholder="항목 (예: 저녁 식사)">
                         </div>
                         <div class="row">
+                            <select id="expPayer" class="input hidden" style="flex:0 0 auto; width:100px" title="낸 사람"></select>
                             <input type="number" inputmode="numeric" id="expPrice" class="input" placeholder="금액(원)">
                             <button class="btn" onclick="addExpense()">등록</button>
                         </div>
                     </div>
 
                     <div class="box" id="expenseList"></div>
+                    <div class="edit-hint" id="expenseHint" style="margin:-8px 0 12px">지출을 누르면 고칠 수 있어요</div>
 
-                    <div class="split-box">
+                    <h3 class="title">👥 누가 냈는지 정산</h3>
+                    <div class="box">
+                        <div class="label">함께 가는 사람을 등록하고, 지출마다 낸 사람을 고르면 누가 누구에게 얼마 보내면 되는지 계산해요.</div>
+                        <div class="chips" id="memberChips"></div>
+                        <div class="row" style="margin-top:8px">
+                            <input type="text" id="memberInput" class="input" maxlength="20" placeholder="이름 (예: 엄마)">
+                            <button class="btn" onclick="addMember()">추가</button>
+                        </div>
+                        <div id="settleResult" class="settle"></div>
+                    </div>
+
+                    <div class="split-box" id="splitBox">
                         <div style="font-size:13px; color:var(--ink); margin-bottom:6px">👥 N분의 1 정산</div>
                         <input type="number" id="peopleCount" value="2" min="1" inputmode="numeric" oninput="setPeopleCount()"> 명 기준
                         <div id="splitResultTxt" style="font-size:16px; color:var(--green); margin-top:6px">1인당: 0원</div>
                     </div>
 
+                </div>
+
+                <!-- 준비물 탭 -->
+                <div id="tab-check" class="tab hidden">
+                    <div class="box">
+                        <div class="budget-row"><span>준비 진행률</span> <strong id="checkCount">0 / 0</strong></div>
+                        <div class="bar"><div class="bar-fill" id="checkBar" style="width:0"></div></div>
+                        <div class="bar-caption" id="checkCaption"></div>
+                    </div>
+
+                    <h3 class="title">✅ 준비물 추가</h3>
+                    <div class="box">
+                        <div class="row">
+                            <input type="text" id="checkInput" class="input" maxlength="100" placeholder="준비물 (예: 충전기)">
+                            <button class="btn" onclick="addCheckItem()">추가</button>
+                        </div>
+                        <div class="chips" id="checkSuggest"></div>
+                    </div>
+
+                    <div class="box" id="checkList"></div>
                 </div>
             </div>
         </div>
@@ -590,7 +720,20 @@
             <button class="tab-btn active" data-tab="places" onclick="switchTab('places')">🗺️ 지도·장소</button>
             <button class="tab-btn" data-tab="schedule" onclick="switchTab('schedule')">📅 일정</button>
             <button class="tab-btn" data-tab="money" onclick="switchTab('money')">💰 가계부</button>
+            <button class="tab-btn" data-tab="check" onclick="switchTab('check')">✅ 준비물</button>
         </nav>
+
+        <!-- 항목 수정 창 (일정 / 지출 / 장소 메모) -->
+        <div id="editModal" class="modal hidden" onclick="if (event.target === this) closeEdit()">
+            <div class="sheet">
+                <h3 id="editTitle"></h3>
+                <div id="editBody"></div>
+                <div class="row" style="margin-top:12px">
+                    <button class="btn" style="flex:1" onclick="saveEdit()">저장</button>
+                    <button class="btn ghost" onclick="closeEdit()">취소</button>
+                </div>
+            </div>
+        </div>
 
         <!-- 지도 설정 창 -->
         <div id="settingsModal" class="modal hidden" onclick="if (event.target === this) closeSettings()">
@@ -658,29 +801,16 @@
             ['관광', '🎡'], ['쇼핑', '🛍️'], ['기타', '📦']
         ];
 
-        const defaultTrips = {
-            "trip_1": {
-                title: "부산 가족여행",
-                startDate: "2026-07-01",
-                endDate: "2026-07-04",
-                locations: [
-                    { lat: 35.115225, lng: 129.041564, title: "부산역", address: "부산 동구 중앙대로 206" },
-                    { lat: 35.158698, lng: 129.160384, title: "해운대 해수욕장", address: "부산 해운대구 우동" }
-                ],
-                schedules: [
-                    { day: 1, time: "10:00", desc: "부산역 도착" }
-                ],
-                budget: 400000,
-                expenses: [],
-                people: 2
-            }
-        };
+        const MAX_MEMBERS = 10;
+        const CHECK_SUGGESTIONS = ['신분증', '충전기', '보조배터리', '상비약', '세면도구', '갈아입을 옷', '선크림', '우산', '카드·현금', '여권'];
 
         let tripsData = loadTrips();
         let currentTripKey = null;
         let currentTab = 'places';
         let activePlace = -1;
         let lastScheduleDay = 1;
+        let lastPayer = '';
+        let mapDay = 'all'; // 지도에 보여줄 일차: 'all' 또는 숫자 (0 = 일차 미정)
 
         const $ = id => document.getElementById(id);
         const cur = () => tripsData[currentTripKey];
@@ -693,7 +823,7 @@
                 const saved = localStorage.getItem(STORAGE_KEY);
                 if (saved) data = JSON.parse(saved);
             } catch (e) {}
-            if (!data || typeof data !== 'object') data = defaultTrips;
+            if (!data || typeof data !== 'object') data = {};
             // 예전 버전 데이터도 그대로 쓸 수 있도록 빠진 값 채우기
             Object.keys(data).forEach(key => { data[key] = normalizeTrip(data[key]); });
             return data;
@@ -706,6 +836,11 @@
             const text = (v, max = 200) => typeof v === 'string' ? v.slice(0, max) : '';
             const date = v => /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '';
             const startDate = date(t.startDate);
+            const day = (v, min) => Math.min(MAX_DAYS, Math.max(min, parseInt(v) || 0));
+            const members = (Array.isArray(t.members) ? t.members : [])
+                .map(m => text(m, 20).trim())
+                .filter((m, i, arr) => m && arr.indexOf(m) === i)
+                .slice(0, MAX_MEMBERS);
             return {
                 title: text(t.title, 100) || '이름 없는 여행',
                 startDate,
@@ -717,10 +852,12 @@
                         lng: +l.lng,
                         title: text(l.title, 100) || '장소',
                         address: text(l.address),
-                        url: safeUrl(l.url)
+                        url: safeUrl(l.url),
+                        day: day(l.day, 0),          // 0 = 일차 미정
+                        memo: text(l.memo, 500)
                     })),
                 schedules: list(t.schedules).map(s => ({
-                    day: Math.min(MAX_DAYS, Math.max(1, parseInt(s.day) || 1)),
+                    day: day(s.day, 1),
                     time: /^\d{1,2}:\d{2}$/.test(s.time) ? s.time : '',
                     desc: text(s.desc)
                 })),
@@ -729,10 +866,15 @@
                     .map(e => ({
                         category: CATEGORIES.some(c => c[0] === e.category) ? e.category : '기타',
                         name: text(e.name, 100),
-                        price: Math.max(0, parseInt(e.price) || 0)
+                        price: Math.max(0, parseInt(e.price) || 0),
+                        payer: text(e.payer, 20)     // '' = 낸 사람 미지정
                     }))
                     .filter(e => e.price > 0),
-                people: Math.max(1, parseInt(t.people) || 2)
+                people: Math.max(1, parseInt(t.people) || 2),
+                members,
+                checklist: list(t.checklist)
+                    .map(c => ({ text: text(c.text, 100).trim(), done: c.done === true }))
+                    .filter(c => c.text)
             };
         }
 
@@ -798,6 +940,7 @@
             drawMap();
             renderScheduleTab();
             updateBudgetUI();
+            renderChecklist();
         }
 
         // ---------- 날짜 ----------
@@ -812,7 +955,7 @@
             return Math.round((b - a) / 86400000);
         }
         function tripDays(trip) {
-            const used = Math.max(0, ...trip.schedules.map(s => s.day || 1));
+            const used = Math.max(0, ...trip.schedules.map(s => s.day || 1), ...trip.locations.map(l => l.day || 0));
             if (trip.startDate) {
                 const n = daysBetween(parseDate(trip.startDate), parseDate(trip.endDate || trip.startDate)) + 1;
                 return Math.min(MAX_DAYS, Math.max(n, used));
@@ -1082,17 +1225,34 @@
             return wrap;
         }
 
-        let pins = [];
+        // 지금 고른 일차에 해당하는 장소 번호들 (전체 목록 기준 순서)
+        function visiblePlaces() {
+            const locations = cur().locations;
+            return locations.map((l, i) => i).filter(i => mapDay === 'all' || locations[i].day === mapDay);
+        }
+
+        let pins = new Map();   // 장소 번호 → 지도 핀
+        let visibleIdx = [];
         function drawMap() {
             if (!mapView || !mapView.map || !currentTripKey) return;
             const locations = cur().locations;
-            pins = locations.map((loc, i) => makePin(i, loc.title));
-            mapView.draw(locations, pins);
+            visibleIdx = visiblePlaces();
+            const els = visibleIdx.map(i => makePin(i, locations[i].title));
+            pins = new Map(visibleIdx.map((i, k) => [i, els[k]]));
+            mapView.draw(visibleIdx.map(i => locations[i]), els);
         }
 
         function fitMap() {
             if (!mapView || !mapView.map || !currentTripKey) return;
-            mapView.fit(cur().locations);
+            mapView.fit(visiblePlaces().map(i => cur().locations[i]));
+        }
+
+        function setMapDay(day) {
+            mapDay = day;
+            activePlace = -1;
+            renderPlaces();
+            drawMap();
+            fitMap();
         }
 
         // ---------- 여행 목록 ----------
@@ -1149,16 +1309,7 @@
             if (!validRange(start, end)) return;
 
             const key = 'trip_' + Date.now();
-            tripsData[key] = {
-                title,
-                startDate: start || '',
-                endDate: start ? (end || start) : '',
-                locations: [],
-                schedules: [],
-                budget: 300000,
-                expenses: [],
-                people: 2
-            };
+            tripsData[key] = normalizeTrip({ title, startDate: start, endDate: end, budget: 300000 });
             saveTrips();
 
             $('newTripName').value = '';
@@ -1191,6 +1342,8 @@
             currentTripKey = key;
             activePlace = -1;
             lastScheduleDay = 1;
+            lastPayer = '';
+            mapDay = 'all';
             const trip = cur();
 
             $('tripSelectView').classList.add('hidden');
@@ -1209,6 +1362,7 @@
             renderPlaces();
             renderScheduleTab();
             updateBudgetUI();
+            renderChecklist();
 
             await mapReady;
             if (currentTripKey !== key) return;
@@ -1323,7 +1477,9 @@
                 lng: place.lng,
                 title: place.title,
                 address: place.address || '',
-                url: safeUrl(place.url)
+                url: safeUrl(place.url),
+                day: mapDay === 'all' ? 0 : mapDay,   // 일차를 골라둔 상태면 그 일차로 추가
+                memo: ''
             });
             saveTrips();
             $('placeInput').value = '';
@@ -1346,16 +1502,43 @@
             undoToast(`'${removed.title}'을(를) 뺐어요.`, trip => trip.locations.splice(idx, 0, removed));
         }
 
+        // 지금 보이는 장소들 사이에서 앞뒤로 순서 바꾸기 (일차를 골랐으면 같은 일차 안에서)
         function moveLocation(idx, delta) {
             const locations = cur().locations;
-            const target = idx + delta;
-            if (target < 0 || target >= locations.length) return;
+            const shown = visiblePlaces();
+            const target = shown[shown.indexOf(idx) + delta];
+            if (target === undefined) return;
             [locations[idx], locations[target]] = [locations[target], locations[idx]];
             activePlace = target;
             saveTrips();
             renderPlaces();
             drawMap();
             highlightPlace(target);
+        }
+
+        function setLocationDay(idx, day) {
+            const loc = cur().locations[idx];
+            loc.day = day;
+            saveTrips();
+            renderPlaces();
+            drawMap();
+            if (mapDay !== 'all') fitMap();
+            renderScheduleTab();
+            toast(day ? `'${loc.title}'을(를) ${day}일차로 정했어요.` : `'${loc.title}'의 일차를 비웠어요.`);
+        }
+
+        function editLocationMemo(idx) {
+            const loc = cur().locations[idx];
+            openEdit(`📝 ${loc.title} 메모`, `
+                <textarea id="editMemo" class="input" maxlength="500" placeholder="예약번호, 영업시간, 주차 정보 등"></textarea>
+            `, () => {
+                loc.memo = $('editMemo').value.trim();
+                saveTrips();
+                renderPlaces();
+                return true;
+            });
+            $('editMemo').value = loc.memo;
+            $('editMemo').focus();
         }
 
         // 지도 핀이나 목록 카드를 누르면 해당 장소 강조 + 지도 이동
@@ -1375,16 +1558,51 @@
 
         function highlightPlace(idx) {
             pins.forEach((p, i) => p.classList.toggle('active', i === idx));
-            if (mapView && mapView.map && idx >= 0) mapView.raise(idx);
+            const pos = visibleIdx.indexOf(idx);
+            if (mapView && mapView.map && pos >= 0) mapView.raise(pos);
             $('placeList').querySelectorAll('.place').forEach(el => {
                 el.classList.toggle('active', Number(el.dataset.idx) === idx);
             });
         }
 
+        // 순서대로 이은 직선거리 합계
+        function routeKm(places) {
+            let total = 0;
+            for (let i = 1; i < places.length; i++) total += distanceKm(places[i - 1], places[i]);
+            return total;
+        }
+
+        // 지도 위 "전체 / 1일차 / 2일차 ..." 버튼
+        function renderDayFilter() {
+            const locations = cur().locations;
+            const box = $('dayFilter');
+            const days = [...new Set(locations.map(l => l.day))].sort((a, b) => a - b);
+            if (!days.some(d => d > 0)) {
+                mapDay = 'all';
+                box.classList.add('hidden');
+                return;
+            }
+            if (mapDay !== 'all' && !days.includes(mapDay)) mapDay = 'all';
+            const options = [['all', '전체'], ...days.filter(d => d > 0).map(d => [d, `${d}일차`])];
+            if (days.includes(0)) options.push([0, '일차 미정']);
+            box.innerHTML = options
+                .map(([value, label]) => `<button data-day="${value}" class="${value === mapDay ? 'on' : ''}">${label}</button>`)
+                .join('');
+            box.querySelectorAll('button').forEach(btn => btn.onclick = () => {
+                setMapDay(btn.dataset.day === 'all' ? 'all' : Number(btn.dataset.day));
+            });
+            box.classList.remove('hidden');
+        }
+
         function renderPlaces() {
             const list = $('placeList');
-            const locations = cur().locations;
+            const trip = cur();
+            const locations = trip.locations;
             list.innerHTML = '';
+            renderDayFilter();
+
+            const dayDist = $('dayDistances');
+            dayDist.classList.add('hidden');
 
             if (locations.length === 0) {
                 $('routeSummary').innerText = '';
@@ -1392,15 +1610,18 @@
                 return;
             }
 
-            let total = 0;
-            locations.forEach((loc, idx) => {
-                if (idx > 0) {
-                    const km = distanceKm(locations[idx - 1], loc);
-                    total += km;
-                    list.insertAdjacentHTML('beforeend', `<div class="leg">↓ 직선거리 약 ${formatKm(km)}</div>`);
+            const shown = visiblePlaces();
+            const days = tripDays(trip);
+            let dayOptions = '<option value="0">일차 미정</option>';
+            for (let d = 1; d <= days; d++) dayOptions += `<option value="${d}">📆 ${escapeHtml(dayLabel(trip, d))}</option>`;
+
+            shown.forEach((idx, k) => {
+                const loc = locations[idx];
+                const prev = k > 0 ? locations[shown[k - 1]] : null;
+                if (prev) {
+                    list.insertAdjacentHTML('beforeend', `<div class="leg">↓ 직선거리 약 ${formatKm(distanceKm(prev, loc))}</div>`);
                 }
 
-                const prev = locations[idx - 1];
                 const name = encodeURIComponent(loc.title);
                 const kakaoRoute = prev
                     ? `https://map.kakao.com/link/from/${encodeURIComponent(prev.title)},${prev.lat},${prev.lng}/to/${name},${loc.lat},${loc.lng}`
@@ -1414,11 +1635,16 @@
                     <div class="place-head">
                         <span class="num">${idx + 1}</span>
                         <span class="place-name">${escapeHtml(loc.title)}</span>
-                        <button class="order-btn" data-move="-1" ${idx === 0 ? 'disabled' : ''} title="앞으로">▲</button>
-                        <button class="order-btn" data-move="1" ${idx === locations.length - 1 ? 'disabled' : ''} title="뒤로">▼</button>
+                        <button class="order-btn" data-move="-1" ${k === 0 ? 'disabled' : ''} title="앞으로">▲</button>
+                        <button class="order-btn" data-move="1" ${k === shown.length - 1 ? 'disabled' : ''} title="뒤로">▼</button>
                         <button class="del">삭제</button>
                     </div>
                     ${loc.address ? `<div class="place-addr">${escapeHtml(loc.address)}</div>` : ''}
+                    ${loc.memo ? `<div class="place-memo">📝 ${escapeHtml(loc.memo)}</div>` : ''}
+                    <div class="place-tools">
+                        <select class="day-sel" title="몇 일차에 갈까요?">${dayOptions}</select>
+                        <button class="order-btn memo-btn">📝 메모${loc.memo ? ' 고치기' : ' 쓰기'}</button>
+                    </div>
                     <div class="links">
                         <a class="link info" href="${escapeHtml(info)}" target="_blank" rel="noopener">ℹ️ 상세정보</a>
                         <a class="link kakao" href="${escapeHtml(kakaoRoute)}" target="_blank" rel="noopener">💛 ${prev ? '이전 장소에서 ' : ''}길찾기</a>
@@ -1426,11 +1652,18 @@
                     </div>
                 `;
                 card.onclick = () => selectPlace(idx, false);
-                card.querySelectorAll('a').forEach(a => a.addEventListener('click', e => e.stopPropagation()));
+                card.querySelectorAll('a, select, .memo-btn').forEach(el => el.addEventListener('click', e => e.stopPropagation()));
                 card.querySelectorAll('[data-move]').forEach(btn => btn.onclick = e => {
                     e.stopPropagation();
                     moveLocation(idx, Number(btn.dataset.move));
                 });
+                const daySel = card.querySelector('.day-sel');
+                daySel.value = loc.day;
+                daySel.onchange = () => setLocationDay(idx, Number(daySel.value));
+                card.querySelector('.memo-btn').onclick = e => {
+                    e.stopPropagation();
+                    editLocationMemo(idx);
+                };
                 card.querySelector('.del').onclick = e => {
                     e.stopPropagation();
                     removeLocation(idx);
@@ -1438,9 +1671,24 @@
                 list.appendChild(card);
             });
 
-            $('routeSummary').innerText = locations.length > 1
-                ? `${locations.length}곳 · 총 약 ${formatKm(total)}`
-                : '1곳';
+            const total = routeKm(shown.map(i => locations[i]));
+            const prefix = mapDay === 'all' ? '' : (mapDay ? `${mapDay}일차 ` : '일차 미정 ');
+            $('routeSummary').innerText = shown.length > 1
+                ? `${prefix}${shown.length}곳 · 총 약 ${formatKm(total)}`
+                : `${prefix}${shown.length}곳`;
+
+            // 전체 보기에서는 일차별 거리도 함께 표시
+            if (mapDay === 'all') {
+                const parts = [...new Set(locations.map(l => l.day))].filter(d => d > 0).sort((a, b) => a - b)
+                    .map(d => {
+                        const places = locations.filter(l => l.day === d);
+                        return `${d}일차 ${places.length}곳${places.length > 1 ? ` ${formatKm(routeKm(places))}` : ''}`;
+                    });
+                if (parts.length) {
+                    dayDist.innerText = '📆 ' + parts.join(' · ');
+                    dayDist.classList.remove('hidden');
+                }
+            }
         }
 
         // ---------- 일정 ----------
@@ -1499,8 +1747,7 @@
 
             const schedules = cur().schedules;
             schedules.push({ day, time, desc });
-            // 일차 → 시간 순으로 정렬 (예전 데이터는 day가 없으므로 1일차로 취급)
-            schedules.sort((a, b) => (a.day || 1) - (b.day || 1) || a.time.localeCompare(b.time));
+            sortSchedules(schedules);
             lastScheduleDay = day;
             saveTrips();
 
@@ -1508,6 +1755,43 @@
             $('schDesc').value = '';
             updateScheduleUI();
             toast(`${dayLabel(cur(), day)}에 일정을 추가했어요!`);
+        }
+
+        // 일차 → 시간 순으로 정렬 (예전 데이터는 day가 없으므로 1일차로 취급)
+        function sortSchedules(schedules) {
+            schedules.sort((a, b) => (a.day || 1) - (b.day || 1) || a.time.localeCompare(b.time));
+        }
+
+        function editSchedule(idx) {
+            const trip = cur();
+            const sch = trip.schedules[idx];
+            let dayOptions = '';
+            for (let d = 1; d <= tripDays(trip); d++) dayOptions += `<option value="${d}">${escapeHtml(dayLabel(trip, d))}</option>`;
+            openEdit('✏️ 일정 고치기', `
+                <div class="row">
+                    <select id="editDay" class="input">${dayOptions}</select>
+                    <input type="time" id="editTime" class="input narrow">
+                </div>
+                <div class="row">
+                    <input type="text" id="editDesc" class="input" list="placeNames" maxlength="200" placeholder="할 일">
+                </div>
+            `, () => {
+                const time = $('editTime').value;
+                const desc = $('editDesc').value.trim();
+                if (!time) { toast('시간을 골라주세요!'); return false; }
+                if (!desc) { toast('할 일을 입력해주세요!'); return false; }
+                sch.day = parseInt($('editDay').value) || 1;
+                sch.time = time;
+                sch.desc = desc;
+                sortSchedules(trip.schedules);
+                saveTrips();
+                updateScheduleUI();
+                toast('일정을 고쳤어요!');
+                return true;
+            });
+            $('editDay').value = sch.day || 1;
+            $('editTime').value = sch.time;
+            $('editDesc').value = sch.desc;
         }
 
         function removeSchedule(idx) {
@@ -1522,6 +1806,7 @@
             const trip = cur();
             list.innerHTML = '';
 
+            $('scheduleHint').classList.toggle('hidden', trip.schedules.length === 0);
             if (trip.schedules.length === 0) {
                 list.innerHTML = `<div class="empty">아직 일정이 없어요. 위에서 날짜와 시간을 골라 추가해 보세요.</div>`;
                 return;
@@ -1544,7 +1829,11 @@
                     <span class="sch-desc">${escapeHtml(sch.desc)}</span>
                     <button class="del">삭제</button>
                 `;
-                item.querySelector('.del').onclick = () => removeSchedule(idx);
+                item.onclick = () => editSchedule(idx);
+                item.querySelector('.del').onclick = e => {
+                    e.stopPropagation();
+                    removeSchedule(idx);
+                };
                 list.appendChild(item);
             });
         }
@@ -1562,10 +1851,20 @@
             toast('예산을 저장했어요!');
         }
 
+        function categoryOptions() {
+            return CATEGORIES.map(([name, emoji]) => `<option value="${name}">${emoji} ${name}</option>`).join('');
+        }
+
+        function payerOptions(members) {
+            return `<option value="">낸 사람</option>` +
+                members.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+        }
+
         function addExpense() {
             const category = $('expCategory').value;
             const name = $('expName').value.trim() || category;
             const price = parseInt($('expPrice').value);
+            const payer = cur().members.length ? $('expPayer').value : '';
 
             if (isNaN(price) || price <= 0) {
                 toast('금액을 입력해주세요!');
@@ -1573,11 +1872,44 @@
                 return;
             }
 
-            cur().expenses.push({ category, name, price });
+            cur().expenses.push({ category, name, price, payer });
+            lastPayer = payer;
             saveTrips();
             $('expName').value = '';
             $('expPrice').value = '';
             updateBudgetUI();
+        }
+
+        function editExpense(idx) {
+            const trip = cur();
+            const exp = trip.expenses[idx];
+            // 지운 참여자가 낸 지출이어도 이름이 사라지지 않게 선택지에 남김
+            const members = exp.payer && !trip.members.includes(exp.payer) ? [...trip.members, exp.payer] : trip.members;
+            openEdit('✏️ 지출 고치기', `
+                <div class="row">
+                    <select id="editCategory" class="input" style="flex:0 0 auto; width:100px">${categoryOptions()}</select>
+                    <input type="text" id="editName" class="input" maxlength="100" placeholder="항목">
+                </div>
+                <div class="row">
+                    ${members.length ? `<select id="editPayer" class="input" style="flex:0 0 auto; width:100px">${payerOptions(members)}</select>` : ''}
+                    <input type="number" inputmode="numeric" id="editPrice" class="input" placeholder="금액(원)">
+                </div>
+            `, () => {
+                const price = parseInt($('editPrice').value);
+                if (isNaN(price) || price <= 0) { toast('금액을 입력해주세요!'); return false; }
+                exp.category = $('editCategory').value;
+                exp.name = $('editName').value.trim() || exp.category;
+                exp.price = price;
+                if ($('editPayer')) exp.payer = $('editPayer').value;
+                saveTrips();
+                updateBudgetUI();
+                toast('지출을 고쳤어요!');
+                return true;
+            });
+            $('editCategory').value = exp.category;
+            $('editName').value = exp.name;
+            $('editPrice').value = exp.price;
+            if ($('editPayer')) $('editPayer').value = exp.payer;
         }
 
         function removeExpense(idx) {
@@ -1600,6 +1932,7 @@
             list.innerHTML = '';
             const total = totalSpent(trip);
 
+            $('expenseHint').classList.toggle('hidden', trip.expenses.length === 0);
             if (trip.expenses.length === 0) {
                 list.innerHTML = `<div class="empty">아직 지출이 없어요.</div>`;
             } else {
@@ -1608,11 +1941,15 @@
                     item.className = 'expense-item';
                     item.innerHTML = `
                         <span>${categoryEmoji(exp.category)}</span>
-                        <span class="name">${escapeHtml(exp.name)}</span>
+                        <span class="name">${escapeHtml(exp.name)}${exp.payer ? `<span class="payer">💳 ${escapeHtml(exp.payer)}</span>` : ''}</span>
                         <strong>${won(exp.price)}</strong>
                         <button class="del">삭제</button>
                     `;
-                    item.querySelector('.del').onclick = () => removeExpense(idx);
+                    item.onclick = () => editExpense(idx);
+                    item.querySelector('.del').onclick = e => {
+                        e.stopPropagation();
+                        removeExpense(idx);
+                    };
                     list.appendChild(item);
                 });
             }
@@ -1636,7 +1973,109 @@
                     return sum > 0 ? `<span class="chip">${emoji} ${name} ${won(sum)}</span>` : '';
                 }).join('');
 
+            renderMembers();
             calculateSplit();
+        }
+
+        // ---------- 누가 냈는지 정산 ----------
+        function addMember() {
+            const name = $('memberInput').value.trim().slice(0, 20);
+            const members = cur().members;
+            if (!name) {
+                toast('이름을 입력해주세요!');
+                $('memberInput').focus();
+                return;
+            }
+            if (members.includes(name)) {
+                toast('이미 등록된 이름이에요!');
+                return;
+            }
+            if (members.length >= MAX_MEMBERS) {
+                toast(`최대 ${MAX_MEMBERS}명까지 등록할 수 있어요.`);
+                return;
+            }
+            members.push(name);
+            saveTrips();
+            $('memberInput').value = '';
+            updateBudgetUI();
+        }
+
+        function removeMember(name) {
+            const trip = cur();
+            const used = trip.expenses.filter(e => e.payer === name).length;
+            if (used && !confirm(`${name}님이 낸 지출이 ${used}건 있어요.\n빼면 그 지출은 정산에서 빠져요. (다시 같은 이름으로 추가하면 돌아와요)`)) return;
+            const idx = trip.members.indexOf(name);
+            trip.members.splice(idx, 1);
+            saveTrips();
+            updateBudgetUI();
+            undoToast(`${name}님을 뺐어요.`, t => { if (!t.members.includes(name)) t.members.splice(idx, 0, name); });
+        }
+
+        // 각자 낸 돈과 1인당 몫의 차이로 "누가 → 누구에게 얼마" 계산 (보내는 횟수가 적게)
+        function settle(trip) {
+            const members = trip.members;
+            const counted = trip.expenses.filter(e => members.includes(e.payer));
+            const total = counted.reduce((s, e) => s + e.price, 0);
+            const share = members.length ? total / members.length : 0;
+            const paid = members.map(name => ({
+                name,
+                amount: counted.filter(e => e.payer === name).reduce((s, e) => s + e.price, 0)
+            }));
+            const givers = paid.map(p => ({ name: p.name, left: share - p.amount })).filter(p => p.left >= 0.5).sort((a, b) => b.left - a.left);
+            const takers = paid.map(p => ({ name: p.name, left: p.amount - share })).filter(p => p.left >= 0.5).sort((a, b) => b.left - a.left);
+            const transfers = [];
+            let i = 0, j = 0;
+            while (i < givers.length && j < takers.length) {
+                const amount = Math.min(givers[i].left, takers[j].left);
+                if (Math.round(amount) > 0) transfers.push({ from: givers[i].name, to: takers[j].name, amount: Math.round(amount) });
+                givers[i].left -= amount;
+                takers[j].left -= amount;
+                if (givers[i].left < 0.5) i++;
+                if (takers[j].left < 0.5) j++;
+            }
+            return { total, share, paid, transfers, unassigned: trip.expenses.length - counted.length };
+        }
+
+        function renderMembers() {
+            const trip = cur();
+            const members = trip.members;
+
+            const chips = $('memberChips');
+            chips.innerHTML = members.length ? '' : `<span class="label" style="margin:0">아직 등록된 사람이 없어요.</span>`;
+            members.forEach(name => {
+                const chip = document.createElement('span');
+                chip.className = 'chip member';
+                chip.innerHTML = `${escapeHtml(name)} <button title="빼기">✕</button>`;
+                chip.querySelector('button').onclick = () => removeMember(name);
+                chips.appendChild(chip);
+            });
+
+            // 지출 입력칸의 '낸 사람' 선택
+            const payerSel = $('expPayer');
+            payerSel.classList.toggle('hidden', members.length === 0);
+            payerSel.innerHTML = payerOptions(members);
+            payerSel.value = members.includes(lastPayer) ? lastPayer : '';
+
+            const box = $('settleResult');
+            if (members.length < 2) {
+                box.innerHTML = members.length ? `<div class="label" style="margin:0">2명 이상 등록하면 정산을 계산해요.</div>` : '';
+                return;
+            }
+            const r = settle(trip);
+            let html = '';
+            if (r.total === 0) {
+                html = `<div class="label" style="margin:0">지출을 입력할 때 낸 사람을 고르면 여기서 정산해 드려요.</div>`;
+            } else {
+                html += r.paid.map(p => `<div class="settle-line"><span>${escapeHtml(p.name)} 낸 돈</span><span>${won(p.amount)}</span></div>`).join('');
+                html += `<div class="settle-line" style="border-top:1px dashed var(--line); margin-top:4px; padding-top:6px"><span>1인당 (${members.length}명)</span><span>${won(Math.round(r.share))}</span></div>`;
+                html += r.transfers.length
+                    ? r.transfers.map(t => `<div class="transfer"><span>${escapeHtml(t.from)} → ${escapeHtml(t.to)}</span><strong>${won(t.amount)}</strong></div>`).join('')
+                    : `<div class="transfer"><span>✅ 서로 보낼 돈이 없어요</span></div>`;
+            }
+            if (r.unassigned) {
+                html += `<div class="label" style="margin:8px 0 0">ℹ️ 낸 사람을 안 고른 지출 ${r.unassigned}건은 정산에서 빠졌어요. 지출을 눌러 낸 사람을 골라 주세요.</div>`;
+            }
+            box.innerHTML = html;
         }
 
         function setPeopleCount() {
@@ -1648,10 +2087,104 @@
             calculateSplit();
         }
 
+        // 참여자를 등록하지 않았을 때만 쓰는 간단한 N분의 1
         function calculateSplit() {
-            const total = totalSpent(cur());
+            const trip = cur();
+            $('splitBox').classList.toggle('hidden', trip.members.length > 0);
+            const total = totalSpent(trip);
             const people = parseInt($('peopleCount').value) || 1;
             $('splitResultTxt').innerText = `1인당: ${won(Math.round(total / people))} (${people}명 기준)`;
+        }
+
+        // ---------- 준비물 ----------
+        function addCheckItem(text) {
+            const value = (text || $('checkInput').value).trim().slice(0, 100);
+            const list = cur().checklist;
+            if (!value) {
+                toast('준비물을 입력해주세요!');
+                $('checkInput').focus();
+                return;
+            }
+            if (list.some(c => c.text === value)) {
+                toast('이미 있는 준비물이에요!');
+                return;
+            }
+            list.push({ text: value, done: false });
+            saveTrips();
+            if (!text) $('checkInput').value = '';
+            renderChecklist();
+        }
+
+        function toggleCheckItem(idx, done) {
+            cur().checklist[idx].done = done;
+            saveTrips();
+            renderChecklist();
+        }
+
+        function removeCheckItem(idx) {
+            const [removed] = cur().checklist.splice(idx, 1);
+            saveTrips();
+            renderChecklist();
+            undoToast(`'${removed.text}'을(를) 지웠어요.`, trip => trip.checklist.splice(idx, 0, removed));
+        }
+
+        function renderChecklist() {
+            const list = cur().checklist;
+            const done = list.filter(c => c.done).length;
+            const percent = list.length ? Math.round(done / list.length * 100) : 0;
+            $('checkCount').innerText = `${done} / ${list.length}`;
+            $('checkBar').style.width = percent + '%';
+            $('checkCaption').innerText = !list.length ? '챙길 물건을 추가해 보세요.'
+                : done === list.length ? '🎉 준비 완료! 즐거운 여행 되세요.' : `${percent}% 준비했어요`;
+
+            const suggest = $('checkSuggest');
+            const left = CHECK_SUGGESTIONS.filter(s => !list.some(c => c.text === s));
+            suggest.innerHTML = '';
+            left.forEach(s => {
+                const chip = document.createElement('span');
+                chip.className = 'chip add';
+                chip.innerText = '+ ' + s;
+                chip.onclick = () => addCheckItem(s);
+                suggest.appendChild(chip);
+            });
+
+            const box = $('checkList');
+            box.innerHTML = '';
+            if (!list.length) {
+                box.innerHTML = `<div class="empty">아직 준비물이 없어요. 위에서 추가하거나 추천 항목을 눌러 보세요.</div>`;
+                return;
+            }
+            list.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = 'check-item' + (item.done ? ' done' : '');
+                row.innerHTML = `
+                    <label><input type="checkbox" ${item.done ? 'checked' : ''}> <span>${escapeHtml(item.text)}</span></label>
+                    <button class="del">삭제</button>
+                `;
+                row.querySelector('input').onchange = e => toggleCheckItem(idx, e.target.checked);
+                row.querySelector('.del').onclick = () => removeCheckItem(idx);
+                box.appendChild(row);
+            });
+        }
+
+        // ---------- 항목 수정 창 ----------
+        let editSave = null;
+        // onSave가 true를 돌려주면 창을 닫음 (입력이 잘못됐으면 false로 창 유지)
+        function openEdit(title, html, onSave) {
+            $('editTitle').innerText = title;
+            $('editBody').innerHTML = html;
+            editSave = onSave;
+            $('editModal').classList.remove('hidden');
+        }
+
+        function saveEdit() {
+            if (editSave && editSave()) closeEdit();
+        }
+
+        function closeEdit() {
+            $('editModal').classList.add('hidden');
+            $('editBody').innerHTML = '';
+            editSave = null;
         }
 
         // ---------- 요약 공유 ----------
@@ -1672,16 +2205,27 @@
             text += '\n📍 방문 장소\n';
             if (trip.locations.length === 0) text += '- 없음\n';
             trip.locations.forEach((l, i) => {
-                text += `${i + 1}. ${l.title}${l.address ? ` (${l.address})` : ''}\n`;
+                text += `${i + 1}. ${l.title}${l.day ? ` [${l.day}일차]` : ''}${l.address ? ` (${l.address})` : ''}\n`;
+                if (l.memo) text += `   📝 ${l.memo.replace(/\n/g, '\n      ')}\n`;
             });
 
             const total = totalSpent(trip);
-            const people = trip.people || 1;
+            const people = trip.members.length || trip.people || 1;
             text += `\n💰 가계부\n- 총 예산: ${won(trip.budget)}\n- 총 지출: ${won(total)}\n- 남은 돈: ${won(trip.budget - total)}\n`;
             CATEGORIES.forEach(([name, emoji]) => {
                 const sum = trip.expenses.filter(e => e.category === name).reduce((s, e) => s + e.price, 0);
                 if (sum > 0) text += `  ${emoji} ${name}: ${won(sum)}\n`;
             });
+            if (trip.members.length >= 2) {
+                const r = settle(trip);
+                text += `\n👥 정산 (${trip.members.join(', ')})\n`;
+                r.paid.forEach(p => { text += `- ${p.name} 낸 돈: ${won(p.amount)}\n`; });
+                text += `- 1인당: ${won(Math.round(r.share))}\n`;
+                r.transfers.forEach(t => { text += `👉 ${t.from} → ${t.to} ${won(t.amount)}\n`; });
+                if (r.total > 0 && !r.transfers.length) text += '👉 서로 보낼 돈 없음\n';
+                if (r.unassigned) text += `(낸 사람 미지정 ${r.unassigned}건 제외)\n`;
+                return text.trimEnd();
+            }
             text += `- 1인당: ${won(Math.round(total / people))} (${people}명)`;
             return text;
         }
@@ -1773,6 +2317,57 @@
             toast('받은 여행을 목록에 추가했어요!');
         }
 
+        // ---------- 백업 / 복원 ----------
+        function backupTrips() {
+            const count = Object.keys(tripsData).length;
+            if (!count) {
+                toast('백업할 여행이 없어요.');
+                return;
+            }
+            const backup = { app: 'travelPlanner', version: 1, exportedAt: new Date().toISOString(), trips: tripsData };
+            const blob = new Blob([JSON.stringify(backup, null, 1)], { type: 'application/json' });
+            const today = new Date();
+            const stamp = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `여행플래너_백업_${stamp}.json`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+            toast(`여행 ${count}개를 백업 파일로 저장했어요!`);
+        }
+
+        async function restoreTrips(input) {
+            const file = input.files[0];
+            input.value = '';   // 같은 파일을 다시 골라도 동작하도록
+            if (!file) return;
+            let trips;
+            try {
+                const data = JSON.parse(await file.text());
+                trips = data && typeof data.trips === 'object' ? data.trips : data;
+                if (!trips || typeof trips !== 'object' || Array.isArray(trips)) throw new Error('bad backup');
+            } catch (e) {
+                toast('백업 파일을 읽을 수 없어요. 이 앱에서 저장한 파일인지 확인해 주세요.');
+                return;
+            }
+            const entries = Object.entries(trips).filter(([, t]) => t && typeof t === 'object');
+            if (!entries.length) {
+                toast('백업 파일에 여행이 없어요.');
+                return;
+            }
+            const same = entries.filter(([key]) => tripsData[key]).length;
+            const msg = `백업 파일의 여행 ${entries.length}개를 불러올까요?` +
+                (same ? `\n지금 있는 여행 중 ${same}개는 백업 내용으로 바뀌어요.` : '') +
+                '\n(백업에 없는 여행은 그대로 남아요)';
+            if (!confirm(msg)) return;
+            entries.forEach(([key, t], i) => {
+                const safeKey = /^trip_[A-Za-z0-9_-]{1,40}$/.test(key) ? key : `trip_${Date.now()}_${i}`;
+                tripsData[safeKey] = normalizeTrip(t);
+            });
+            saveTrips();
+            renderTripList();
+            toast(`여행 ${entries.length}개를 불러왔어요!`);
+        }
+
         // ---------- 지도 설정 ----------
         async function openSettings() {
             document.querySelectorAll('.originTxt').forEach(el => { el.innerText = location.origin; });
@@ -1811,8 +2406,7 @@
         }
 
         // ---------- 시작 ----------
-        $('expCategory').innerHTML = CATEGORIES
-            .map(([name, emoji]) => `<option value="${name}">${emoji} ${name}</option>`).join('');
+        $('expCategory').innerHTML = categoryOptions();
 
         const onEnter = (id, fn) => $(id).addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.isComposing) fn();
@@ -1823,10 +2417,20 @@
         onEnter('expName', () => $('expPrice').focus());
         onEnter('expPrice', addExpense);
         onEnter('budgetInput', setBudget);
+        onEnter('memberInput', addMember);
+        onEnter('checkInput', () => addCheckItem());
+        $('editBody').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.isComposing && e.target.tagName === 'INPUT') saveEdit();
+        });
         $('schDay').addEventListener('change', e => { lastScheduleDay = parseInt(e.target.value) || 1; });
 
         renderTripList();
         importFromLink();
+
+        // 홈 화면에 추가했을 때 인터넷이 잠깐 끊겨도 열리도록 (항상 최신 버전을 먼저 받아옴)
+        if ('serviceWorker' in navigator && location.protocol === 'https:') {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
     </script>
 
 </body>
