@@ -601,7 +601,6 @@
                 <div class="label">사용할 지도</div>
                 <div class="seg" id="mapChoice">
                     <button data-map="kakao" onclick="pickMap('kakao')">💛 카카오맵</button>
-                    <button data-map="naver" onclick="pickMap('naver')">💚 네이버 지도</button>
                     <button data-map="basic" onclick="pickMap('basic')">🌍 기본 지도</button>
                 </div>
 
@@ -616,17 +615,6 @@
                     <input type="text" id="kakaoKeyInput" class="input" style="width:100%" placeholder="카카오 JavaScript 키">
                 </div>
 
-                <div id="setup-naver" class="setup">
-                    <p>네이버 지도 화면을 쓸 수 있어요. 단, 네이버는 브라우저에서 바로 장소 검색을 쓸 수 없어서 <b>검색은 기본 무료 검색</b>으로 돼요. 네이버 클라우드 <b>Maps Client ID</b>가 필요해요.</p>
-                    <ol>
-                        <li><a href="https://console.ncloud.com" target="_blank" rel="noopener">console.ncloud.com</a> 로그인 (결제수단 등록이 필요할 수 있어요. 무료 사용량 안에서는 요금이 없어요)</li>
-                        <li>Services → <b>Maps</b> → Application 등록 → <b>Dynamic Map</b> 선택</li>
-                        <li><b>Web 서비스 URL</b>에 아래 주소 등록<br><code class="originTxt"></code></li>
-                        <li>인증 정보의 <b>Client ID</b>를 복사해서 붙여넣기</li>
-                    </ol>
-                    <input type="text" id="naverKeyInput" class="input" style="width:100%" placeholder="네이버 지도 Client ID">
-                </div>
-
                 <div id="setup-basic" class="setup">
                     <p>키 없이 바로 쓰는 무료 지도(OpenStreetMap)예요. 한국 장소 검색은 조금 덜 정확해요.</p>
                 </div>
@@ -635,7 +623,7 @@
                     <button class="btn" style="flex:1" onclick="saveMapSettings()">저장하고 적용</button>
                     <button class="btn ghost" onclick="closeSettings()">닫기</button>
                 </div>
-                <p style="margin:10px 0 0; font-size:12px; color:var(--muted)">키는 이 기기 브라우저에만 저장돼요. 가족 모두에게 적용하려면 코드 맨 위 <code>KAKAO_JS_KEY</code> / <code>NAVER_MAP_KEY</code>에 넣어 주세요.</p>
+                <p style="margin:10px 0 0; font-size:12px; color:var(--muted)">키는 이 기기 브라우저에만 저장돼요. 가족 모두에게 적용하려면 코드 맨 위 <code>KAKAO_JS_KEY</code>에 넣어 주세요.</p>
             </div>
         </div>
 
@@ -658,15 +646,10 @@
         // 지도 키를 여기에 넣으면 가족 모두의 기기에서 바로 적용돼요.
         // (비워두면 ⚙️ 설정에서 입력한 키를 쓰고, 키가 없으면 기본 무료 지도로 동작)
         const KAKAO_JS_KEY = '92facf1f31fe1e92767ba6045607f9f6';    // 카카오맵 JavaScript 키
-        const NAVER_MAP_KEY = '';   // 네이버 지도 Client ID (네이버 클라우드 Maps)
-        const DEFAULT_MAP = 'kakao'; // 두 키가 다 있을 때 먼저 쓸 지도: 'kakao' 또는 'naver'
 
         const STORAGE_KEY = 'travelPlanner.trips';
         const KAKAO_KEY_STORAGE = 'travelPlanner.kakaoKey';
-        const NAVER_KEY_STORAGE = 'travelPlanner.naverKey';
         const MAP_PREF_STORAGE = 'travelPlanner.mapProvider';
-        const NAVER_FAILED_STORAGE = 'travelPlanner.naverFailedKey';
-        const REOPEN_STORAGE = 'travelPlanner.reopenTrip';
         const DEFAULT_DAYS = 5;
         const MAX_DAYS = 30;
         const KOREA_CENTER = { lat: 36.5, lng: 127.8 };
@@ -1028,87 +1011,8 @@
             search: searchOSM
         };
 
-        // 네이버 지도 (장소 검색은 브라우저에서 쓸 수 없어 무료 OSM 검색 사용)
-        const NaverMapView = {
-            kind: 'naver',
-            map: null,
-            async load(key) {
-                // 키나 도메인이 틀리면 네이버가 이 함수를 불러줌 → 표시해두고 다른 지도로 다시 열기
-                window.navermap_authFailure = () => {
-                    try {
-                        sessionStorage.setItem(NAVER_FAILED_STORAGE, key);
-                        if (currentTripKey) sessionStorage.setItem(REOPEN_STORAGE, currentTripKey);
-                    } catch (e) {}
-                    location.reload();
-                };
-                await loadScript(`https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(key)}`);
-                if (!window.naver || !naver.maps) throw new Error('naver sdk missing');
-            },
-            create(el) {
-                this.map = new naver.maps.Map(el, {
-                    center: new naver.maps.LatLng(KOREA_CENTER.lat, KOREA_CENTER.lng),
-                    zoom: 7,
-                    zoomControl: true,
-                    zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT }
-                });
-                this.markers = [];
-                this.line = null;
-            },
-            draw(locations, pins) {
-                this.markers.forEach(m => m.setMap(null));
-                if (this.line) this.line.setMap(null);
-                this.line = null;
-                this.markers = locations.map((loc, i) => {
-                    const marker = new naver.maps.Marker({
-                        map: this.map,
-                        position: new naver.maps.LatLng(loc.lat, loc.lng),
-                        icon: { content: pins[i], anchor: new naver.maps.Point(13, 31) },
-                        zIndex: i + 1
-                    });
-                    naver.maps.Event.addListener(marker, 'click', () => selectPlace(i, true));
-                    return marker;
-                });
-                if (locations.length > 1) {
-                    this.line = new naver.maps.Polyline({
-                        map: this.map,
-                        path: locations.map(l => new naver.maps.LatLng(l.lat, l.lng)),
-                        strokeColor: '#2563eb',
-                        strokeWeight: 4,
-                        strokeOpacity: 0.7,
-                        strokeStyle: 'shortdash'
-                    });
-                }
-            },
-            raise(idx) {
-                this.markers.forEach((m, i) => m.setZIndex(i === idx ? 999 : i + 1));
-            },
-            fit(locations) {
-                const point = l => new naver.maps.LatLng(l.lat, l.lng);
-                if (locations.length === 0) {
-                    this.map.setCenter(point(KOREA_CENTER));
-                    this.map.setZoom(7);
-                } else if (locations.length === 1) {
-                    this.map.setCenter(point(locations[0]));
-                    this.map.setZoom(15);
-                } else {
-                    const bounds = new naver.maps.LatLngBounds(point(locations[0]), point(locations[0]));
-                    locations.forEach(l => bounds.extend(point(l)));
-                    this.map.fitBounds(bounds, { top: 50, right: 30, bottom: 30, left: 30 });
-                }
-            },
-            focus(loc) {
-                this.map.setCenter(new naver.maps.LatLng(loc.lat, loc.lng));
-                this.map.setZoom(16);
-            },
-            relayout() {
-                const el = this.map.getElement();
-                this.map.setSize(new naver.maps.Size(el.offsetWidth, el.offsetHeight));
-            },
-            search: searchOSM
-        };
-
-        const MAP_VIEWS = { kakao: KakaoMapView, naver: NaverMapView, basic: BasicMapView };
-        const MAP_NAMES = { kakao: '카카오맵', naver: '네이버 지도', basic: '기본 지도(OpenStreetMap)' };
+        const MAP_VIEWS = { kakao: KakaoMapView, basic: BasicMapView };
+        const MAP_NAMES = { kakao: '카카오맵', basic: '기본 지도(OpenStreetMap)' };
 
         async function searchOSM(query) {
             const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=7&accept-language=ko&q=${encodeURIComponent(query)}`);
@@ -1136,36 +1040,26 @@
         }
         function getMapKey(kind) {
             if (kind === 'kakao') return readStorage(KAKAO_KEY_STORAGE) || KAKAO_JS_KEY;
-            if (kind === 'naver') return readStorage(NAVER_KEY_STORAGE) || NAVER_MAP_KEY;
             return '';
         }
         function getMapPref() {
             const pref = readStorage(MAP_PREF_STORAGE);
-            return MAP_VIEWS[pref] ? pref : DEFAULT_MAP;
+            return MAP_VIEWS[pref] ? pref : 'kakao';
         }
 
         let mapView = null;
         let failedMaps = [];
 
-        // 고른 지도 → 다른 지도 → 기본 지도 순서로, 키가 있고 잘 열리는 지도 사용
+        // 카카오맵 키가 있고 잘 열리면 카카오맵, 아니면 기본 지도 사용
         const mapReady = (async () => {
-            const pref = getMapPref();
-            const order = pref === 'basic' ? [] : (pref === 'naver' ? ['naver', 'kakao'] : ['kakao', 'naver']);
-            for (const kind of order) {
-                const key = getMapKey(kind);
-                if (!key) continue;
-                let failedKey = '';
-                try { failedKey = sessionStorage.getItem(NAVER_FAILED_STORAGE) || ''; } catch (e) {}
-                if (kind === 'naver' && failedKey === key) {
-                    failedMaps.push(kind);
-                    continue;
-                }
+            const key = getMapKey('kakao');
+            if (getMapPref() === 'kakao' && key) {
                 try {
-                    await MAP_VIEWS[kind].load(key);
-                    mapView = MAP_VIEWS[kind];
+                    await KakaoMapView.load(key);
+                    mapView = KakaoMapView;
                     return;
                 } catch (e) {
-                    failedMaps.push(kind);
+                    failedMaps.push('kakao');
                 }
             }
             await BasicMapView.load();
@@ -1353,7 +1247,7 @@
             if (failedMaps.length) {
                 note.innerText = `⚠️ 불러오기 실패: ${failedMaps.map(k => MAP_NAMES[k]).join(', ')} — 눌러서 키/도메인을 확인해 주세요.`;
             } else if (mapView.kind === 'basic' && getMapPref() !== 'basic') {
-                note.innerText = 'ℹ️ 기본 지도로 보고 있어요. 눌러서 카카오맵이나 네이버 지도로 바꿀 수 있어요.';
+                note.innerText = 'ℹ️ 기본 지도로 보고 있어요. 눌러서 카카오맵으로 바꿀 수 있어요.';
             } else {
                 note.classList.add('hidden');
                 return;
@@ -1879,22 +1773,10 @@
             toast('받은 여행을 목록에 추가했어요!');
         }
 
-        // 네이버 지도 인증 실패로 새로고침됐으면 보던 여행을 다시 열고 알려주기
-        function reopenAfterMapFailure() {
-            let key = '';
-            try {
-                key = sessionStorage.getItem(REOPEN_STORAGE) || '';
-                sessionStorage.removeItem(REOPEN_STORAGE);
-            } catch (e) {}
-            if (key && tripsData[key]) openTrip(key);
-            if (key) toast('네이버 지도 키가 맞지 않아 다른 지도로 바꿨어요. ⚙️에서 확인해 주세요.');
-        }
-
         // ---------- 지도 설정 ----------
         async function openSettings() {
             document.querySelectorAll('.originTxt').forEach(el => { el.innerText = location.origin; });
             $('kakaoKeyInput').value = getMapKey('kakao');
-            $('naverKeyInput').value = getMapKey('naver');
             pickMap(getMapPref());
             $('mapStatus').innerText = '지도 불러오는 중...';
             $('settingsModal').classList.remove('hidden');
@@ -1915,22 +1797,14 @@
 
         function saveMapSettings() {
             const kakaoKey = $('kakaoKeyInput').value.trim();
-            const naverKey = $('naverKeyInput').value.trim();
             if (pickedMap === 'kakao' && !kakaoKey) {
                 toast('카카오 JavaScript 키를 넣어주세요!');
-                return;
-            }
-            if (pickedMap === 'naver' && !naverKey) {
-                toast('네이버 지도 Client ID를 넣어주세요!');
                 return;
             }
             try {
                 localStorage.setItem(MAP_PREF_STORAGE, pickedMap);
                 if (kakaoKey) localStorage.setItem(KAKAO_KEY_STORAGE, kakaoKey);
                 else localStorage.removeItem(KAKAO_KEY_STORAGE);
-                if (naverKey) localStorage.setItem(NAVER_KEY_STORAGE, naverKey);
-                else localStorage.removeItem(NAVER_KEY_STORAGE);
-                sessionStorage.removeItem(NAVER_FAILED_STORAGE);
             } catch (e) {}
             // 지도 SDK는 한 번만 불러올 수 있어서 새로고침으로 적용
             location.reload();
@@ -1953,7 +1827,6 @@
 
         renderTripList();
         importFromLink();
-        reopenAfterMapFailure();
     </script>
 
 </body>
